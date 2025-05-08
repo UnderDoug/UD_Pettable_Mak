@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<objects>
+  <object Name="Mak" Load="Merge">
+    <part Name="UD_DoNotPetMe" 
+          WarnMessage="Consider yourself warned, =Name=, I will not suffer you trying that again." WarnFilter="Frog"
+          AngerMessage="{{W|I WARNED YOU NOT TO PET ME AGAIN!}}"
+          ConsumeFloatMessage="*GULP*"/>
+    <tag Name="PetResponse" Value="stares with bewildered contempt" />
+  </object>
+</objects>
