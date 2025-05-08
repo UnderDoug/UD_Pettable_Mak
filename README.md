@@ -11,15 +11,14 @@ Definitely not a second time, either! _No really. Don't._
 4. DON'T
 
 ### FAQ
-
-Q: Can I pet Mak with this mod enabled?
+Q: Can I pet Mak with this mod enabled? </br>
 A: _Yes! but I can't imagine why you'd want to._
 
-Q: Why did Mak tell me off when I tried to pet him?
+Q: Why did Mak tell me off when I tried to pet him? </br>
 A: _Have you spoken to him? He's not a friendly frog._
 
-Q: I petted him a second time, and _the thing_ happened :(
+Q: I petted him a second time, and _the thing_ happened :( </br>
 A: _Not a question, but he did warn you not to pet him again._
 
-Q: Why did you make this mod??
+Q: Why did you make this mod?? </br>
 A: _Good question!_
