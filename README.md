@@ -22,3 +22,10 @@ A: _Not a question, but he did warn you not to pet him again._
 
 Q: Why did you make this mod?? </br>
 A: _Good question!_
+
+<details>
+  <summary>Q: Really, though, what happens the second time?</summary>
+  A: <i>He swallows you whole, you become a cord in time's silly carpet, and your run ends.</i>
+  </br></br>
+  I'm not kidding
+</details>
