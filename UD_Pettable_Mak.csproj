@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<AssemblyName>GigantismPus</AssemblyName>
-		<PackageId>GigantismPus</PackageId>
-		<Authors>hyd-n-plyn-syt, UnderDoug</Authors>
+		<AssemblyName>UD_Pettable_Mak</AssemblyName>
+		<PackageId>UD_Pettable_Mak</PackageId>
+		<Authors>UnderDoug</Authors>
 		<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
 	</PropertyGroup>
   <Import Project="../Mods.csproj" />
