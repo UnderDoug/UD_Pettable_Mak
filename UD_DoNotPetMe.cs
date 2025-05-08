@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 using XRL.Language;
-
-using SerializeField = UnityEngine.SerializeField;
+using XRL.World.Parts.Mutation;
 
 namespace XRL.World.Parts
 {
@@ -63,12 +61,13 @@ namespace XRL.World.Parts
                 EmitMessage(message, ' ', FromDialog: false, E.Actor.IsPlayer() || ParentObject.IsPlayer());
 
                 Consumer consumer = ParentObject.RequirePart<Consumer>();
-                consumer.WeightThresholdPercentage = 200;
+                consumer.WeightThresholdPercentage = 10000;
                 consumer.Message = "{{R|=subject.T= =verb:swallow= =object.Name= whole for petting =pronouns.objective= too many times!}}";
                 consumer.FloatMessage = ConsumeFloatMessage;
 
                 if (consumer.CanConsume(E.Actor) && !consumer.ShouldIgnore(E.Actor))
                 {
+                    ParentObject.PlayWorldSound("Sounds/Abilities/sfx_ability_tonguePull");
                     E.Actor.Render.RenderLayer = E.Object.Render.RenderLayer - 1;
                     E.Actor.DirectMoveTo(E.Object.CurrentCell, 0, true, true, true);
                     consumer.Consume(E.Actor);
