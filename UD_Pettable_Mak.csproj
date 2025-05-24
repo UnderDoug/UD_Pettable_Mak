@@ -4,6 +4,7 @@
 		<PackageId>UD_Pettable_Mak</PackageId>
 		<Authors>UnderDoug</Authors>
 		<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+		<Company />
 	</PropertyGroup>
   <Import Project="../Mods.csproj" />
 </Project>
