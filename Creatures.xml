@@ -5,6 +5,6 @@
           WarnMessage="Consider yourself warned, =Name=, I will not suffer you trying that again." WarnFilter="Frog"
           AngerMessage="{{W|I WARNED YOU NOT TO PET ME AGAIN!}}"
           ConsumeFloatMessage="*GULP*"/>
-    <tag Name="PetResponse" Value="=subject.=subject.T= =verb:croak= indignantly.,=subject.T= =verb:stare= at =object.t= with bewildered contempt." />
+    <tag Name="PetResponse" Value="=subject.T= =verb:cope=, =pronoun.subjective= =verb:seethe=. =pronoun.Subjective= =verb:mald=, even.,=subject.T= =verb:seethe= silently.,=subject.T= =verb:croak= indignantly.,=subject.T= =verb:stare= at =object.t= with bewildered contempt." />
   </object>
 </objects>

@@ -1,3 +1,5 @@
+### Now with more petting responses, resistance to over-autostimulation, and an increased appetite!
+
 With this mod, everyone's favourite seething mound of malachine spite is pettable!
 
 _Should_ you pet him? Absolutely not!
