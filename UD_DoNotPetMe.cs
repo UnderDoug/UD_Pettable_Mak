@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 
 using XRL.Language;
+using XRL.World;
+using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 
 namespace XRL.World.Parts
@@ -73,7 +75,7 @@ namespace XRL.World.Parts
                     EmitMessage(message, ' ', FromDialog: false, E.Actor.IsPlayerControlled() || ParentObject.IsPlayerControlled());
 
                     Consumer consumer = ParentObject.RequirePart<Consumer>();
-                    consumer.WeightThresholdPercentage = 9999999;
+                    consumer.WeightThresholdPercentage = 999999;
                     consumer.Message = "{{R|=subject.T= =verb:swallow= =object.Name= whole for petting =pronouns.objective= too many times!}}";
                     consumer.FloatMessage = ConsumeFloatMessage;
 
@@ -100,20 +102,31 @@ namespace XRL.World.Parts
             }
             return base.HandleEvent(E);
         }
+    }
+}
 
+/*
+namespace UD_Pettable_Mak
+{
+    [HarmonyPatch]
+    public static class Pettable_Patches
+    {
         [HarmonyPatch(
             declaringType: typeof(Pettable),
             methodName: nameof(Pettable.CanPet),
             argumentTypes: new Type[] { typeof(GameObject), typeof(string) },
             argumentVariations: new ArgumentType[] { ArgumentType.Normal, ArgumentType.Out })]
         [HarmonyPostfix]
-        public static void CanPet_CantPetSelf_Postfix(ref bool __result, ref Pettable __instance, GameObject Actor)
+        public static void CanPet_CantPetSelf_Postfix(ref bool __result, ref Pettable __instance, GameObject Actor, out string FailureMessage)
         {
             Pettable @this = __instance;
+            FailureMessage = null;
             if (Actor == @this.ParentObject)
             {
                 __result = false;
+                FailureMessage = "=subject.T= cannot pet =pronouns.reflexive=!";
             }
         }
     }
 }
+*/
