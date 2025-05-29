@@ -75,7 +75,7 @@ namespace XRL.World.Parts
                     EmitMessage(message, ' ', FromDialog: false, E.Actor.IsPlayerControlled() || ParentObject.IsPlayerControlled());
 
                     Consumer consumer = ParentObject.RequirePart<Consumer>();
-                    consumer.WeightThresholdPercentage = 999999;
+                    consumer.WeightThresholdPercentage = 99999;
                     consumer.Message = "{{R|=subject.T= =verb:swallow= =object.Name= whole for petting =pronouns.objective= too many times!}}";
                     consumer.FloatMessage = ConsumeFloatMessage;
 

@@ -1,7 +1,7 @@
 {
     "id": "ud_pettable_mak",
-    "title": "Pettable(?) Mak",
-    "description": "Adds the ability to pet everyone's favourite seething mound of malachine spite, Mak! He might not like you doing it though!",
+    "title": "{{Y|Pettable}}({{K|?}}) {{g|Mak}}",
+    "description": "Adds the ability to pet everyone's favourite seething mound of {{G|malachine}} spite, {{g|Mak}}! He might not like you doing it though!",
     "version": "0.0.2",
     "author": "{{K-g-G-Y-G-g-K alternation|UnderDoug}}",
     "tags": "Lore,Balance,Quality of life",
