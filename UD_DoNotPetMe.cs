@@ -14,6 +14,8 @@ namespace XRL.World.Parts
     [Serializable]
     public class UD_DoNotPetMe : IScribedPart
     {
+        public static ModInfo ThisMod = ModManager.GetMod("ud_pettable_mak");
+
         public List<string> HasWarned = new();
         public string WarnMessage;
         public string WarnFilter;
@@ -57,6 +59,7 @@ namespace XRL.World.Parts
         {
             if (E.Actor != ParentObject)
             {
+                MetricsManager.LogModInfo(ThisMod, $"AfterPetEvent");
                 if (!HasWarned.Contains(E.Actor.ID))
                 {
                     HasWarned.Add(E.Actor.ID);
@@ -65,6 +68,7 @@ namespace XRL.World.Parts
                     string message = GameText.VariableReplace(WarnMessage, ParentObject, E.Actor);
                     Grammar.AllowSecondPerson = allowSecondPerson;
                     EmitMessage(TextFilters.Filter(message, WarnFilter), ' ', FromDialog: false, E.Actor.IsPlayerControlled() || ParentObject.IsPlayerControlled());
+                    MetricsManager.LogModInfo(ThisMod, $"Warned");
                 }
                 else
                 {
@@ -74,20 +78,33 @@ namespace XRL.World.Parts
                     Grammar.AllowSecondPerson = allowSecondPerson;
                     EmitMessage(message, ' ', FromDialog: false, E.Actor.IsPlayerControlled() || ParentObject.IsPlayerControlled());
 
+                    int weightThresholdPercentage = 49999;
+                    MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThresholdPercentage)}: {weightThresholdPercentage}");
+
                     Consumer consumer = ParentObject.RequirePart<Consumer>();
-                    consumer.WeightThresholdPercentage = 49999;
+                    consumer.WeightThresholdPercentage = weightThresholdPercentage;
                     consumer.Message = "{{R|=subject.T= =verb:swallow= =object.Name= whole for petting =pronouns.objective= too many times!}}";
                     consumer.FloatMessage = ConsumeFloatMessage;
 
                     if (consumer.CanConsume(E.Actor) && !consumer.ShouldIgnore(E.Actor))
                     {
+                        MetricsManager.LogModInfo(ThisMod, $"Consume imminent");
+
                         CombatJuiceEntryPunch punch = CombatJuice.punch(ParentObject, E.Actor, 0.1f);
                         CombatJuiceManager.enqueueEntry(punch, async: true);
+
+                        MetricsManager.LogModInfo(ThisMod, $"CombatJuice enqueued");
 
                         ParentObject.PlayWorldSound("Sounds/Abilities/sfx_ability_tonguePull");
                         E.Actor.Render.RenderLayer = E.Object.Render.RenderLayer - 1;
                         E.Actor.DirectMoveTo(E.Object.CurrentCell, 0, true, true, true);
+
+                        MetricsManager.LogModInfo(ThisMod, $"Animations Completed");
+
                         consumer.Consume(E.Actor);
+
+                        MetricsManager.LogModInfo(ThisMod, $"Consumed, returning false");
+
                         return false;
                     }
                 }
