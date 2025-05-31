@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 using XRL.Language;
 using XRL.World;
+using XRL.World.AI;
 using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 
@@ -16,7 +17,7 @@ namespace XRL.World.Parts
     {
         public static ModInfo ThisMod = ModManager.GetMod("ud_pettable_mak");
 
-        public List<string> HasWarned = new();
+        public List<string> WarnedList = new();
         public string WarnMessage;
         public string WarnFilter;
         public string AngerMessage;
@@ -28,6 +29,66 @@ namespace XRL.World.Parts
             AngerMessage = "YOU WERE WARNED";
         }
 
+        public bool HasWarned(GameObject Petter)
+        {
+            return Petter != null
+                && WarnedList.Contains(Petter.ID);
+        }
+        public bool Warn(GameObject Petter)
+        {
+            bool alreadyWarned = HasWarned(Petter);
+
+            if (!alreadyWarned)
+            {
+                WarnedList.Add(Petter.ID);
+                bool allowSecondPerson = Grammar.AllowSecondPerson;
+                Grammar.AllowSecondPerson = false;
+                string message = GameText.VariableReplace(WarnMessage, ParentObject, Petter);
+                Grammar.AllowSecondPerson = allowSecondPerson;
+                EmitMessage(TextFilters.Filter(message, WarnFilter), ' ', FromDialog: false, Petter.IsPlayerControlled() || ParentObject.IsPlayerControlled());
+                MetricsManager.LogModInfo(ThisMod, $"Warned");
+            }
+            return !alreadyWarned && HasWarned(Petter);
+        }
+
+        public static bool SwallowWhole(GameObject Petter, GameObject Pettee, string ConsumeFloatMessage)
+        {
+            if (Petter != null && Pettee != null)
+            {
+                int weightThresholdPercentage = 49999;
+                int weightThreshold = Pettee.Weight * weightThresholdPercentage / 100;
+                MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThresholdPercentage)}: {weightThresholdPercentage}");
+                MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThreshold)}: {weightThreshold}");
+
+                Consumer consumer = Pettee.RequirePart<Consumer>();
+                consumer.Active = true;
+                consumer.WeightThresholdPercentage = weightThresholdPercentage;
+                consumer.Message = "{{R|=subject.T= =verb:swallow= =object.Name= whole for petting =pronouns.objective= too many times!}}";
+                consumer.FloatMessage = ConsumeFloatMessage;
+
+                if (consumer.CanConsume(Petter) && !consumer.ShouldIgnore(Petter))
+                {
+                    CombatJuiceEntryPunch punch = CombatJuice.punch(Pettee, Petter, 0.1f);
+                    CombatJuiceManager.enqueueEntry(punch, async: true);
+
+                    Pettee.PlayWorldSound("Sounds/Abilities/sfx_ability_tonguePull");
+                    Petter.Render.RenderLayer = Pettee.Render.RenderLayer - 1;
+                    Petter.DirectMoveTo(Pettee.CurrentCell, 0, true, true, true);
+
+                    consumer.Consume(Petter);
+                    consumer.Active = false;
+
+                    return Petter.IsNowhere();
+                }
+                consumer.Active = false;
+            }
+            return false;
+        }
+        public bool SwallowWhole(GameObject Petter)
+        {
+            return SwallowWhole(Petter, ParentObject, ConsumeFloatMessage);
+        }
+
         public override bool AllowStaticRegistration()
         {
             return true;
@@ -35,6 +96,7 @@ namespace XRL.World.Parts
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
             Registrar.Register(GetInventoryActionsEvent.ID, EventOrder.EXTREMELY_LATE + EventOrder.EXTREMELY_LATE);
+            Registrar.Register(InventoryActionEvent.ID, EventOrder.EXTREMELY_EARLY + EventOrder.EXTREMELY_EARLY);
             base.Register(Object, Registrar);
         }
         public override bool WantEvent(int ID, int cascade)
@@ -49,8 +111,9 @@ namespace XRL.World.Parts
             {
                 Pettable pettable = ParentObject.RequirePart<Pettable>();
                 pettable.OnlyAllowIfLiked = false;
-                pettable.MaxAIDistance = 1;
-                ParentObject.SetIntProperty("PetGoalWait", 999999);
+                pettable.MaxAIDistance = 2;
+                ParentObject.SetIntProperty("PetGoalChance", 2);
+                ParentObject.SetIntProperty("PetGoalWait", 200);
                 ParentObject.SetStringProperty("PreferChatToPet", "He will literally eat you");
             }
             return base.HandleEvent(E);
@@ -60,53 +123,24 @@ namespace XRL.World.Parts
             if (E.Actor != ParentObject)
             {
                 MetricsManager.LogModInfo(ThisMod, $"AfterPetEvent");
-                if (!HasWarned.Contains(E.Actor.ID))
-                {
-                    HasWarned.Add(E.Actor.ID);
-                    bool allowSecondPerson = Grammar.AllowSecondPerson;
-                    Grammar.AllowSecondPerson = false;
-                    string message = GameText.VariableReplace(WarnMessage, ParentObject, E.Actor);
-                    Grammar.AllowSecondPerson = allowSecondPerson;
-                    EmitMessage(TextFilters.Filter(message, WarnFilter), ' ', FromDialog: false, E.Actor.IsPlayerControlled() || ParentObject.IsPlayerControlled());
-                    MetricsManager.LogModInfo(ThisMod, $"Warned");
-                }
-                else
+                if (!Warn(E.Actor))
                 {
                     bool allowSecondPerson = Grammar.AllowSecondPerson;
                     Grammar.AllowSecondPerson = false;
                     string message = GameText.VariableReplace(AngerMessage, ParentObject, E.Actor);
                     Grammar.AllowSecondPerson = allowSecondPerson;
-                    EmitMessage(message, ' ', FromDialog: false, E.Actor.IsPlayerControlled() || ParentObject.IsPlayerControlled());
+                    EmitMessage(message, FromDialog: false, UsePopup: E.Actor.IsPlayerControlled() || ParentObject.IsPlayerControlled());
 
-                    int weightThresholdPercentage = 49999;
-                    MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThresholdPercentage)}: {weightThresholdPercentage}");
-
-                    Consumer consumer = ParentObject.RequirePart<Consumer>();
-                    consumer.WeightThresholdPercentage = weightThresholdPercentage;
-                    consumer.Message = "{{R|=subject.T= =verb:swallow= =object.Name= whole for petting =pronouns.objective= too many times!}}";
-                    consumer.FloatMessage = ConsumeFloatMessage;
-
-                    if (consumer.CanConsume(E.Actor) && !consumer.ShouldIgnore(E.Actor))
+                    if (!SwallowWhole(E.Actor))
                     {
-                        MetricsManager.LogModInfo(ThisMod, $"Consume imminent");
-
-                        CombatJuiceEntryPunch punch = CombatJuice.punch(ParentObject, E.Actor, 0.1f);
-                        CombatJuiceManager.enqueueEntry(punch, async: true);
-
-                        MetricsManager.LogModInfo(ThisMod, $"CombatJuice enqueued");
-
-                        ParentObject.PlayWorldSound("Sounds/Abilities/sfx_ability_tonguePull");
-                        E.Actor.Render.RenderLayer = E.Object.Render.RenderLayer - 1;
-                        E.Actor.DirectMoveTo(E.Object.CurrentCell, 0, true, true, true);
-
-                        MetricsManager.LogModInfo(ThisMod, $"Animations Completed");
-
-                        consumer.Consume(E.Actor);
-
-                        MetricsManager.LogModInfo(ThisMod, $"Consumed, returning false");
-
-                        return false;
+                        if (ParentObject.PartyLeader == E.Actor)
+                        {
+                            ParentObject.PartyLeader = null;
+                        }
+                        ParentObject.AddOpinion<OpinionGoad>(E.Actor);
+                        ParentObject.Target = E.Actor;
                     }
+                    return false;
                 }
             }
             return base.HandleEvent(E);
@@ -116,6 +150,35 @@ namespace XRL.World.Parts
             if (E.Actions.ContainsKey("Pet") && E.Object == E.Actor && (E.Object == ParentObject || E.Actor == ParentObject))
             {
                 E.Actions.Remove("Pet");
+            }
+            return base.HandleEvent(E);
+        }
+        public override bool HandleEvent(InventoryActionEvent E)
+        {
+            if (E.Command == "Pet" && E.Actor != null && !E.Actor.IsPlayerControlled())
+            {
+                int intMod = -999;
+                if (E.Actor.HasStat("Intelligence"))
+                {
+                    intMod = E.Actor.StatMod("Intelligence");
+                }
+                if (HasWarned(E.Actor) && E.Actor.Brain != null && intMod.in10())
+                {
+                    int petGoalWeight = ParentObject.GetIntProperty("PetGoalWait", Pettable.DEFAULT_PET_GOAL_WAIT);
+                    E.Actor.SetIntProperty("AIPetWait", petGoalWeight);
+
+                    string failMessage = GameText.VariableReplace("=object.T= =verb:consider= petting =subject.Name=, but changes =object.its= mind recalling =object.Name's= warning.", ParentObject, E.Actor);
+
+                    E.Actor.ShowFailure(failMessage);
+
+                    E.RequestInterfaceExit();
+                    return false;
+                }
+                else
+                {
+                    string failMessage = GameText.VariableReplace("=object.T= =verb:fail= to heed =object.Name's= warning.", ParentObject, E.Actor);
+                    E.Actor.ShowFailure(failMessage);
+                }
             }
             return base.HandleEvent(E);
         }
