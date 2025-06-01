@@ -55,7 +55,7 @@ namespace XRL.World.Parts
         {
             if (Petter != null && Pettee != null)
             {
-                int weightThresholdPercentage = 49999;
+                int weightThresholdPercentage = 999999;
                 int weightThreshold = Pettee.Weight * weightThresholdPercentage / 100;
                 MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThresholdPercentage)}: {weightThresholdPercentage}");
                 MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThreshold)}: {weightThreshold}");
@@ -184,29 +184,3 @@ namespace XRL.World.Parts
         }
     }
 }
-
-/*
-namespace UD_Pettable_Mak
-{
-    [HarmonyPatch]
-    public static class Pettable_Patches
-    {
-        [HarmonyPatch(
-            declaringType: typeof(Pettable),
-            methodName: nameof(Pettable.CanPet),
-            argumentTypes: new Type[] { typeof(GameObject), typeof(string) },
-            argumentVariations: new ArgumentType[] { ArgumentType.Normal, ArgumentType.Out })]
-        [HarmonyPostfix]
-        public static void CanPet_CantPetSelf_Postfix(ref bool __result, ref Pettable __instance, GameObject Actor, out string FailureMessage)
-        {
-            Pettable @this = __instance;
-            FailureMessage = null;
-            if (Actor == @this.ParentObject)
-            {
-                __result = false;
-                FailureMessage = "=subject.T= cannot pet =pronouns.reflexive=!";
-            }
-        }
-    }
-}
-*/
