@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using XRL.Language;
 using XRL.World;
 using XRL.World.AI;
+using XRL.World.Capabilities;
 using XRL.World.Parts;
 using XRL.World.Parts.Mutation;
 
@@ -25,7 +26,7 @@ namespace XRL.World.Parts
 
         public UD_DoNotPetMe() 
         {
-            WarnMessage = "Best not be doing that gain!";
+            WarnMessage = "Best not be doing that again!";
             AngerMessage = "YOU WERE WARNED";
         }
 
@@ -46,7 +47,12 @@ namespace XRL.World.Parts
                 string message = GameText.VariableReplace(WarnMessage, ParentObject, Petter);
                 Grammar.AllowSecondPerson = allowSecondPerson;
                 EmitMessage(TextFilters.Filter(message, WarnFilter), ' ', FromDialog: false, Petter.IsPlayerControlled() || ParentObject.IsPlayerControlled());
-                MetricsManager.LogModInfo(ThisMod, $"Warned");
+                MetricsManager.LogModInfo(ThisMod, $"{Petter?.DebugName ?? "null"} Warned");
+
+                if (Mental.PerformAttack(FearAura.ApplyFear, ParentObject, Petter, null, "Terrify Aura", "2d6+4", 8388609, "2d2".RollCached()))
+                {
+                    MetricsManager.LogModInfo(ThisMod, $"{Petter?.DebugName ?? "null"} Terrified");
+                }
             }
             return !alreadyWarned && HasWarned(Petter);
         }
@@ -55,8 +61,13 @@ namespace XRL.World.Parts
         {
             if (Petter != null && Pettee != null)
             {
-                int weightThresholdPercentage = 999999;
+                int weightThresholdPercentage = 100 * ((int.MaxValue - 5) / Pettee.Weight);
                 int weightThreshold = Pettee.Weight * weightThresholdPercentage / 100;
+                // a = b * c / 100
+                // c = 100 * a / b
+                // weightThresholdPercentage = 100 * weightThreshold / Pettee.Weight
+                // Pettee.Weight = 100 * weightThreshold / weightThresholdPercentage
+
                 MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThresholdPercentage)}: {weightThresholdPercentage}");
                 MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThreshold)}: {weightThreshold}");
 
@@ -157,11 +168,13 @@ namespace XRL.World.Parts
         {
             if (E.Command == "Pet" && E.Actor != null && !E.Actor.IsPlayerControlled())
             {
-                int intMod = -999;
+                MetricsManager.LogModInfo(ThisMod, $"InventoryActionEvent, \"Pet\"");
+                int intMod = 5;
                 if (E.Actor.HasStat("Intelligence"))
                 {
-                    intMod = E.Actor.StatMod("Intelligence");
+                    intMod += E.Actor.StatMod("Intelligence");
                 }
+                MetricsManager.LogModInfo(ThisMod, $"IntMod (+5), {intMod}");
                 if (HasWarned(E.Actor) && E.Actor.Brain != null && intMod.in10())
                 {
                     int petGoalWeight = ParentObject.GetIntProperty("PetGoalWait", Pettable.DEFAULT_PET_GOAL_WAIT);
