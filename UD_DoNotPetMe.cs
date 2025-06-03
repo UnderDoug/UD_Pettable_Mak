@@ -61,13 +61,14 @@ namespace XRL.World.Parts
         {
             if (Petter != null && Pettee != null)
             {
-                int weightThresholdPercentage = 100 * ((int.MaxValue - 5) / Pettee.Weight);
+                int weightThresholdPercentage =  int.MaxValue / (Pettee.Weight + 1);
                 int weightThreshold = Pettee.Weight * weightThresholdPercentage / 100;
                 // a = b * c / 100
                 // c = 100 * a / b
                 // weightThresholdPercentage = 100 * weightThreshold / Pettee.Weight
                 // Pettee.Weight = 100 * weightThreshold / weightThresholdPercentage
 
+                MetricsManager.LogModInfo(ThisMod, $"{nameof(Pettee)}.{nameof(Pettee.Weight)}: {Pettee.Weight}");
                 MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThresholdPercentage)}: {weightThresholdPercentage}");
                 MetricsManager.LogModInfo(ThisMod, $"{nameof(weightThreshold)}: {weightThreshold}");
 
@@ -106,8 +107,8 @@ namespace XRL.World.Parts
         }
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Registrar.Register(GetInventoryActionsEvent.ID, EventOrder.EXTREMELY_LATE + EventOrder.EXTREMELY_LATE);
-            Registrar.Register(InventoryActionEvent.ID, EventOrder.EXTREMELY_EARLY + EventOrder.EXTREMELY_EARLY);
+            Registrar.Register(GetInventoryActionsEvent.ID, EventOrder.EXTREMELY_LATE);
+            Registrar.Register(InventoryActionEvent.ID, EventOrder.EXTREMELY_EARLY);
             base.Register(Object, Registrar);
         }
         public override bool WantEvent(int ID, int cascade)
@@ -184,7 +185,6 @@ namespace XRL.World.Parts
 
                     E.Actor.ShowFailure(failMessage);
 
-                    E.RequestInterfaceExit();
                     return false;
                 }
                 else
